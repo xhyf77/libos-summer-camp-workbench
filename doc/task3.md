@@ -20,10 +20,11 @@
 
 # 任务验收
 你需要提供
-1. main函数源码
-2. checkpoint和restore函数的源码
+1. unikraft main函数源码
+2. avisor checkpoint和restore函数的源码
 3. 方案设计与实现的思路
 4. 必答题
+5. 如果对avisor有其他改动优化，请在文档中指出，让我们看到你的思考过程与贡献
 
 可以随意一点,自行组织格式
 
