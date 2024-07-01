@@ -93,9 +93,7 @@ void restart_vm() {
 }
 
 void restore_snapshot_hanlder(unsigned long iss, unsigned long arg0, unsigned long arg1, unsigned long arg2) { 
-    /* 
-        恢复快照的handler
-    */
+    // Implement me: 恢复快照的handler
 }
 
 void checkpoint_snapshot_hanlder(unsigned long iss, unsigned long arg0, unsigned long arg1, unsigned long arg2) {
@@ -109,7 +107,7 @@ void checkpoint_snapshot_hanlder(unsigned long iss, unsigned long arg0, unsigned
         init = true;
     }
 
-    // 根据框架中目前提供的快照池等函数实现checkpoint
+    // Implement me：根据框架中目前提供的快照池等函数实现checkpoint
 
     
 }
