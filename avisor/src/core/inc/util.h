@@ -28,6 +28,9 @@
 #define INFO(args, ...) \
     printk("AVISOR INFO: " args "\n" __VA_OPT__(, ) __VA_ARGS__);
 
+#define PRINT(args,...) \
+    printk(args  __VA_OPT__(, ) __VA_ARGS__);
+
 #define WARNING(args, ...) \
     printk("AVISOR WARNING: " args "\n" __VA_OPT__(, ) __VA_ARGS__);
 

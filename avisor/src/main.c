@@ -4,8 +4,20 @@
 #include "cpu.h"
 #include "interrupts.h"
 
+unsigned int get_current_el() {
+    unsigned int el;
+    // 使用内联汇编读取 CurrentEL 寄存器
+    asm volatile("mrs %0, CurrentEL" : "=r" (el));
+    return el >> 2; // 当前特权级别存储在位[3:2]
+}
+
 int main(cpuid_t id) {
+     unsigned int el = get_current_el();
+     INFO("Current Exception Level (EL): %u\n", el);
      cpu_init(id);
+
+     el = get_current_el();
+     INFO("Current Exception Level (EL): %u\n", el);
 
      if (id == CPU_MASTER) {
           INFO("------------avisor started------------");

@@ -68,7 +68,6 @@ static inline struct snapshot* get_ss_by_id(ssid_t id) {
 
 void guest_halt_hanlder(unsigned long iss, unsigned long arg0, unsigned long arg1, unsigned long arg2) {
     unsigned long reason = arg0;
-
     switch (reason) {
         case PSCI_FNID_SYSTEM_OFF:
             INFO("Guest System off %d", cpu()->id);
@@ -114,4 +113,8 @@ void checkpoint_snapshot_hanlder(unsigned long iss, unsigned long arg0, unsigned
 
 void restore_snapshot_hanlder_by_ss(struct snapshot* ss) {
     // 描述: 恢复为给定ss的快照
+}
+
+void print_handler(unsigned long iss, const char *message ){
+    PRINT(message);
 }

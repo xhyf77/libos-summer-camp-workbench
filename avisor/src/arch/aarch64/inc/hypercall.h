@@ -7,6 +7,7 @@ typedef enum {
     // Snapshot
     HYPERCALL_ISS_CHECKPOINT_SNAPSHOT,
     HYPERCALL_ISS_RESTORE_SNAPSHOT,
+    HYPERCALL_ISS_PRINT
 } HYPERCALL_TYPE;
 
 typedef void (*hypercall_handler_t)(unsigned long, unsigned long, unsigned long, unsigned long);
