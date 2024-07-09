@@ -313,7 +313,6 @@ bool mem_map(struct addr_space *as, vaddr_t va, struct ppages *ppages,
 vaddr_t mem_alloc_map(struct addr_space* as, struct ppages *page, 
                         vaddr_t at, size_t nr_pages, mem_flags_t flags) {
     vaddr_t address = mem_alloc_vpage(as, at, nr_pages);
-
     if (address != INVALID_VA) {
         mem_map(as, address, page, nr_pages, flags);
     }

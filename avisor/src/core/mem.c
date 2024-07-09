@@ -53,6 +53,7 @@ void mem_init() {
 }
 
 void *mem_alloc_page(size_t nr_pages, bool phys_aligned) {
+    INFO("nr_pages:0x%lx\n" , nr_pages);
     struct ppages ppages = mem_alloc_ppages(nr_pages, phys_aligned);
 
     return (void*)ppages.base;

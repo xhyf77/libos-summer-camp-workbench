@@ -10,7 +10,7 @@
 #define AVISOR_BASE     0x40000000
 #define CPU_BASE        0x50000000     
 #define VM_BASE         (CPU_BASE + (MAX_NUM_CPU) * (CPU_SIZE))
-#define VM_SIZE         0x20000000     // size: 512M
+#define VM_SIZE         0x60000000     // size: 512M
 #define RQ_REGION_SIZE 0x10000000   // size: 256M
 
 #define CPU_STACK_OFF   4096

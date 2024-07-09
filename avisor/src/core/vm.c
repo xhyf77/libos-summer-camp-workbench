@@ -15,7 +15,6 @@ struct vm_list vm_list;
 static void vm_init_mem_regions(struct vm* vm, const struct vm_config* vm_config) { 
     vaddr_t va;
     paddr_t pa;
-
     va = mem_alloc_map(&vm->as, NULL, vm_config->base_addr, NUM_PAGES(vm_config->size + vm_config->dmem_size), PTE_VM_FLAGS);
     if (va != vm_config->base_addr) {
         ERROR("va != vm's base_addr");
@@ -57,14 +56,13 @@ static vcpuid_t vm_calc_vcpu_id(struct vm* vm) {
 void vm_vcpu_init(struct vm* vm, const struct vm_config* vm_config) {
     vcpuid_t vcpu_id = vm_calc_vcpu_id(vm);
     struct vcpu* vcpu = vm_get_vcpu(vm, vcpu_id);
-
     vcpu->id = vcpu_id;
     vcpu->p_id = cpu()->id;
     vcpu->vm = vm;
     cpu()->vcpu = vcpu;
 
-    vcpu_arch_init(vcpu, vm);
-    vcpu_arch_reset(vcpu, vm_config->entry);
+    vcpu_arch_init(vcpu, vm);   //set vttbr_el2 (two-stage)
+    vcpu_arch_reset(vcpu, vm_config->entry); //set vcpu->regs.spsr_el2 and entry and something
 }
 
 static void vm_master_init(struct vm* vm, const struct vm_config* vm_config, vmid_t vm_id) {
@@ -113,7 +111,7 @@ struct vm* vm_init(struct vm_allocation* vm_alloc, const struct vm_config* vm_co
     struct vm *vm = vm_allocation_init(vm_alloc);
     
     if (master) {
-        vm_master_init(vm, vm_config, vm_id);
+        vm_master_init(vm, vm_config, vm_id);//init two-stage ptage-table
     }
 
     vm_cpu_init(vm);

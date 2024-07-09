@@ -90,7 +90,8 @@ qemu: qemu-start
 qemu-start: $(target_exec)
 	$(qemu) -M $(device) -machine gic-version=$(gic_version),iommu=$(iommu) \
 		-cpu $(cpu) -smp $(num_cpu) -m $(memory) -nographic \
-		-kernel $(build_dir)/$(target_exec).elf
+		-kernel $(build_dir)/$(target_exec).elf 
+
 
 qemu-debug: $(target_exec)
 	$(qemu) -s -S -M $(device) -machine gic-version=$(gic_version),iommu=$(iommu) \

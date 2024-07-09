@@ -26,6 +26,7 @@ struct snapshot {
     size_t size;
     uint32_t vm_id;
     struct vcpu vcpu;
+    struct list_head list;
     char mem[0];
 };
 
@@ -33,6 +34,8 @@ void checkpoint_snapshot_hanlder(unsigned long iss, unsigned long far, unsigned 
 void restore_snapshot_hanlder(unsigned long iss, unsigned long arg0, unsigned long arg1, unsigned long arg2);
 void guest_halt_hanlder(unsigned long iss, unsigned long far, unsigned long il, unsigned long ec);
 void print_handler(unsigned long iss, const char *message );
+void restart_vm();
+void restore_snapshot_hanlder_by_ss( ssid_t id );
 extern struct list_head ss_pool_list;
 
 #endif
