@@ -115,9 +115,22 @@ void vmm_init() {
         struct vm_config *vm_config = &config.vm[vm_id];
         struct vm *vm = vm_init(vm_alloc, vm_config, master, vm_id);
         cpu_sync_barrier(&vm->sync);
-        INFO("cpu-address:%lx......vcpu-address:%lx......cpu-interface" , (unsigned long long)cpu() , (unsigned long long)cpu()->vcpu , (unsigned long long)cpu()->interface);
-        vcpu_run(cpu()->vcpu);
+        task_struct_init(vm);
+        //vcpu_run(cpu()->vcpu);
     } else {
         cpu_idle();
     }
+
+    if (vmm_assign_vcpu(&master, &vm_id)) {
+        INFO("VMID:%d Load addr: 0x%x", vm_id, config.vm[vm_id].load_addr);
+        struct vm_allocation *vm_alloc = vmm_alloc_install_vm(vm_id, master);
+        struct vm_config *vm_config = &config.vm[vm_id];
+        struct vm *vm = vm_init(vm_alloc, vm_config, master, vm_id);
+        cpu_sync_barrier(&vm->sync);
+        task_struct_init(vm);
+    } else {
+        cpu_idle();
+    }
+
+    vcpu_run(cpu()->vcpu);
 }

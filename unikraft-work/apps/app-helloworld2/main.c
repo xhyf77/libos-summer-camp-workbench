@@ -89,10 +89,13 @@ int main(int argc, char *argv[])
 #if CONFIG_APPHELLOWORLD_PRINTARGS || CONFIG_APPHELLOWORLD_SPINNER
 	int i;
 #endif
-	printf("Hello,this is hello_world 1 !\n");
-	printf("Get the message from the shared memory !\n");
-	printf("%s\n", (char *)shared_memory);
-
+	printf("Hello,this is hello_world 2 !\n");
+	strcpy((char *)shared_memory, "This is a message i write to the shared_memory\n");
+	printf("I have write something to the share memory !\n");
+	for(int i = 1 ; i <= 10000000000 ; i ++ ) {
+		int x = 1;
+		x = x + 1;
+	}//not to exit
 
 #if CONFIG_APPHELLOWORLD_SPINNER
 	i = 0;

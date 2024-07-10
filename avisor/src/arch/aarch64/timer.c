@@ -2,7 +2,7 @@
 #include "timer.h"
 #include "sysregs.h"
 #include "interrupts.h"
-
+#include "sched.h"
 #define CNTV_CTL_ENABLE         (1 << 0)    /* Enables the timer */
 #define CNTV_CTL_IMASK          (1 << 1)    /* Timer interrupt mask bit */
 #define CNTV_CTL_ISTATUS        (1 << 2)    /* The status of the timer interrupt. This bit is read-only */
@@ -50,9 +50,12 @@ void timer_handler(void) {
 
 	// INFO("do irq_timer next timestamp: %d", current_cnt + ticks);
 	INFO("TIME IRQ %d", ++cnt);
-
 	// Enable the timer
 	enable_cnthp();
+	if( cnt < 2 ) return ;
+	schedule();
+	INFO( "next pc:0x%lx" , cpu()->vcpu->regs.elr_el2 );
+	vcpu_run(cpu()->vcpu);
 }
 
 

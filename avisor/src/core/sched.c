@@ -50,6 +50,7 @@ static inline int goodness(struct task_struct* p) {
 
 static inline void prepare_to_switch(struct task_struct* next) {
     struct vm* vm = next->vm;
+    INFO("next vm_id:%d\n" , vm->id );
     sysreg_vttbr_el2_write((((uint64_t)vm->id << VTTBR_VMID_OFF) & VTTBR_VMID_MSK) |
                        ((paddr_t)vm->as.pt.root & ~VTTBR_VMID_MSK));
     ISB();
@@ -82,12 +83,10 @@ void task_struct_init(struct vm* vm) {
     struct task_struct *p = &tasks[id];
     struct __task_struct *__p;
     int i;
-
     p->nr_vcpu_ready = vm->nr_cpus;
     p->need_resched = 0;
     p->counter = DEFAULT_COUNTER;
     p->vm = vm;
-
     for (i = 0; i < BMQ_LEVELS; i++) {
         INIT_FIFO(&p->rq[DEFAULT_LEVEL]);
     }
@@ -156,7 +155,9 @@ select_vm:
     list_for_each_entry(temp, &runqueue, list) {
         if (temp->status == TASK_READY && temp->nr_vcpu_ready > 0) {
             weight = goodness(temp);
-            if (weight > max_weight) {
+            if (weight > max_weight && temp->vm->id != prev->vm->id ) {
+//                INFO("prev_id:%d ,,,,,, next_id:%d\n" ,  prev->vm->id , temp->vm->id );
+//                INFO("prev_pc:0x%lx ,,,,,, next_pc:0x%lx\n" ,  prev->vm->vcpus->regs.elr_el2 , temp->vm->vcpus->regs.elr_el2 );
                 max_weight = weight;
                 next = temp;
             }
@@ -202,5 +203,5 @@ select_vm:
 
     prepare_to_switch(next);
 
-    switch_to(__next);
+    cpu()->vcpu = next->vm->vcpus;
 }

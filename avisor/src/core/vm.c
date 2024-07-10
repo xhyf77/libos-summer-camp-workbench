@@ -11,7 +11,7 @@
 // #include "rq.h"
 
 struct vm_list vm_list;
-
+static paddr_t share_memory = 0;
 static void vm_init_mem_regions(struct vm* vm, const struct vm_config* vm_config) { 
     vaddr_t va;
     paddr_t pa;
@@ -19,6 +19,7 @@ static void vm_init_mem_regions(struct vm* vm, const struct vm_config* vm_config
     if (va != vm_config->base_addr) {
         ERROR("va != vm's base_addr");
     }
+    INFO("va:0x%lx----0x:%lx\n", vm_config->base_addr , vm_config->base_addr + vm_config->size + vm_config->dmem_size);
     mem_translate(&vm->as, va, &pa);
     memcpy((void*)pa, (void*)vm_config->load_addr, vm_config->size);
     INFO("Copy vm%d to 0x%x, size = 0x%x", vm->id, pa, vm_config->size);
@@ -31,6 +32,29 @@ static void vm_init_mem_regions(struct vm* vm, const struct vm_config* vm_config
     mem_translate(&vm->as, va, &pa);
     memcpy((void*)pa, (void*)config.dtb.load_addr, config.dtb.size);
     INFO("Copy dtb to 0x%x, size = 0x%x", pa, config.dtb.size);
+
+    //Share memory
+    if( share_memory == 0 ) {
+        va = mem_alloc_map(&vm->as, NULL, 0x50000000 , 10 , PTE_VM_FLAGS);
+        if (va != 0x50000000 ) {
+            ERROR("va != vm's base_addr");
+        }
+        mem_translate(&vm->as, va, &pa);
+        share_memory = pa;
+        *(char *)share_memory = "test\n";
+    }
+    else{
+        struct ppages x;
+        x.base = share_memory;
+        x.nr_pages = 10;
+        va = mem_alloc_map(&vm->as, &x , 0x50000000 , 10 , PTE_VM_FLAGS);
+        if (va != 0x50000000 ) {
+            ERROR("va != vm's base_addr");
+        }
+        INFO("shared_memory:0x%lx\n" , share_memory );
+        mem_translate(&vm->as, va, &pa);
+        INFO("shared_memory:0x%lx   pa:0x%lx" , share_memory , pa );
+    }
 }
 
 static struct vm* vm_allocation_init(struct vm_allocation* vm_alloc) {
