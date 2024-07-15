@@ -6,7 +6,11 @@
 #include "cpu.h"
 #include "vm.h"
 #include "sysregs.h"
+
+unsigned long max_vm_id = 0;
+
 #define SCHEDULE
+
 struct __task_struct {
     int status;
     int level;
@@ -36,7 +40,7 @@ spinlock_t rq_lock = SPINLOCK_INITVAL;
 
 //TODO: set and get current in stack top, not use this shit
 static inline struct __task_struct* __current() {
-    return &__tasks[cpu()->vcpu->id];
+    return &__tasks[cpu()->vcpu->real_id];
 }
 
 static inline struct task_struct* current() {
@@ -50,7 +54,6 @@ static inline int goodness(struct task_struct* p) {
 
 static inline void prepare_to_switch(struct task_struct* next) {
     struct vm* vm = next->vm;
-    INFO("next vm_id:%d\n" , vm->id );
     sysreg_vttbr_el2_write((((uint64_t)vm->id << VTTBR_VMID_OFF) & VTTBR_VMID_MSK) |
                        ((paddr_t)vm->as.pt.root & ~VTTBR_VMID_MSK));
     ISB();
@@ -62,7 +65,7 @@ static inline void switch_to(struct __task_struct* __next) {
 
 static struct __task_struct* __task_struct_init(struct task_struct* task, int vcpu_id) {
     struct vm* vm = task->vm;
-    unsigned long id = vm->vcpus[vcpu_id].id;
+    unsigned long id = vm->vcpus[vcpu_id].real_id; //change
     struct __task_struct *__p = &__tasks[id];
 
     __p->status = TASK_READY;
@@ -80,13 +83,16 @@ static struct __task_struct* __task_struct_init(struct task_struct* task, int vc
 
 void task_struct_init(struct vm* vm) {
     unsigned long id = vm->id;
+    max_vm_id = max( max_vm_id , id );
     struct task_struct *p = &tasks[id];
     struct __task_struct *__p;
     int i;
+
     p->nr_vcpu_ready = vm->nr_cpus;
     p->need_resched = 0;
     p->counter = DEFAULT_COUNTER;
     p->vm = vm;
+
     for (i = 0; i < BMQ_LEVELS; i++) {
         INIT_FIFO(&p->rq[DEFAULT_LEVEL]);
     }
@@ -96,14 +102,24 @@ void task_struct_init(struct vm* vm) {
         fifo_in(&__p->fifo, &p->rq[DEFAULT_LEVEL]);
     }
     bitmap_set(&p->bitmap, DEFAULT_LEVEL);
-    
     list_add_tail(&p->list, &runqueue);
 }
 
 void try_reschedule() {
 #ifdef SCHEDULE
-    schedule();
+    update_task_times(); //change
+    if (__current()->need_resched || current()->need_resched) {
+        INFO("SCHEDULE");
+        schedule();
+    }
 #endif
+}
+
+void first_run_task(){
+    tasks[cpu()->vcpu->vm->id].nr_vcpu_ready--;
+    tasks[cpu()->vcpu->vm->id].status = TASK_RUNNING;
+    __tasks[cpu()->vcpu->real_id].status = TASK_RUNNING;
+    vcpu_run(cpu()->vcpu);
 }
 
 void update_task_times() {
@@ -111,13 +127,13 @@ void update_task_times() {
     struct __task_struct *__p = __current();
 
     INFO("update task times");
-    INFO("vpcu[%d]: %d", __p->vcpu->id, __p->counter);
+    INFO("vpcu[%d]: %d", __p->vcpu->real_id, __p->counter);
     INFO("vm[%d]: %d", p->vm->id, p->counter);
 
     if (--__p->counter <= 0) {
         __p->counter = 0;
         __p->need_resched = 1;
-        INFO("vpcu[%d] need resched", __p->vcpu->id);
+        INFO("vpcu[%d] need resched", __p->vcpu->real_id);
     }
 
     if (--p->counter <= 0) {
@@ -126,7 +142,7 @@ void update_task_times() {
         INFO("vm[%d] need resched", p->vm->id);
     }
 
-    INFO("vpcu[%d]: %d", __p->vcpu->id, __p->counter);
+    INFO("vpcu[%d]: %d", __p->vcpu->real_id, __p->counter);
     INFO("vm[%d]: %d", p->vm->id, p->counter);
 }
 
@@ -139,7 +155,6 @@ void schedule() {
 
     __prev = __current();
     prev = current();
-    prev->vm->vcpus = cpu()->vcpu;
 
 //TODO: two locks instead of one big lock
     spin_lock(&rq_lock);
@@ -147,19 +162,39 @@ void schedule() {
     prev->status = TASK_READY;
     __prev->status = TASK_READY;
     prev->nr_vcpu_ready++;
-
     /* select vm */
 select_vm:
+
+/*
     list_for_each_entry(temp, &runqueue, list) {
-        if (temp->status == TASK_READY && temp->nr_vcpu_ready > 0) {
+        if (temp->status == TASK_READY && temp->nr_vcpu_ready > 0 && temp->vm->id != prev->vm->id) {
             weight = goodness(temp);
-            if (weight > max_weight && temp->vm->id != prev->vm->id ) {
+            if (weight > max_weight) {
                 max_weight = weight;
                 next = temp;
             }
         }
     }
-    INFO("prev::%lx , next:%lx" , prev->vm->id , next->vm->id );
+    */
+    INFO("max_vm_id:%d" , max_vm_id );
+    if( prev->vm->id == max_vm_id){
+        list_for_each_entry(temp, &runqueue, list) {
+            INFO("temp->vm->id:%d\n" , temp->vm->id );
+            if (temp->status == TASK_READY && temp->nr_vcpu_ready > 0  ) {
+                next = temp;
+                goto select_vcpu;
+            }
+        }
+    }
+
+    list_for_each_entry(temp, &runqueue, list) {
+        INFO("temp->vm->id:%d\n" , temp->vm->id );
+        if (temp->status == TASK_READY && temp->nr_vcpu_ready > 0  && temp->vm->id > prev->vm->id ) {
+            next = temp;
+            goto select_vcpu;
+        }
+    }
+    
     if (next == NULL) {
         if (!repeat) {
             list_for_each_entry(temp, &runqueue, list) {
@@ -174,8 +209,9 @@ select_vm:
             return;
         }
     }
-
+select_vcpu:
     /* select vcpu */
+    INFO("prev->vm->id:%d ==== next->vm->id:%d" , prev->vm->id , next->vm->id );
     i = bit32_ffs(next->bitmap);
     while(1) {
         ASSERT(i != -1);
@@ -190,15 +226,19 @@ select_vm:
         }
     }
 
+//更改下一个将要运行的vcpu状态和vm状态
     __next->status = TASK_RUNNING;
+    next->status = TASK_RUNNING;
     next->nr_vcpu_ready--;
+//
     __prev->need_resched = 0;
     prev->need_resched = 0;
+
+    INFO("prev->vcpu->id:%d ==== next->vcpu->id:%d" , __prev->vcpu->real_id , __next->vcpu->real_id );
 
     spin_unlock(&rq_lock);
 
     prepare_to_switch(next);
-
-    cpu()->vcpu = next->vm->vcpus;
-
+    cpu()->vcpu = __next->vcpu;
+    switch_to(__next);
 }

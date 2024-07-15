@@ -3,7 +3,7 @@
 
 #include "vm.h"
 
-#define DEFAULT_COUNTER 2
+#define DEFAULT_COUNTER 1
 #define BMQ_LEVELS 8
 #define DEFAULT_LEVEL 4
 
@@ -15,5 +15,6 @@ void task_struct_init(struct vm* vm);
 void try_reschedule();
 void update_task_times();
 void schedule();
+void first_run_task();
 
 #endif

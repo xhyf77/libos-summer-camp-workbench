@@ -108,30 +108,24 @@ void vmm_init() {
 
     vm_list_init();
 
-    bool master = false;
-    vmid_t vm_id = -1;
-    if (vmm_assign_vcpu(&master, &vm_id)) {
-        INFO("VMID:%d Load addr: 0x%x", vm_id, config.vm[vm_id].load_addr);
-        struct vm_allocation *vm_alloc = vmm_alloc_install_vm(vm_id, master);
-        struct vm_config *vm_config = &config.vm[vm_id];
-        struct vm *vm = vm_init(vm_alloc, vm_config, master, vm_id);
-        cpu_sync_barrier(&vm->sync);
-        task_struct_init(vm);
-        //vcpu_run(cpu()->vcpu);
-    } else {
-        cpu_idle();
+    for(int i = 0 ; i < config.nr_vms ; i ++ ){
+        INFO("i:%d\n" , i );
+        bool master = false;
+        vmid_t vm_id = -1;
+        if (vmm_assign_vcpu(&master, &vm_id)) {
+            INFO("VMID:%d Load addr: 0x%x", vm_id, config.vm[vm_id].load_addr);
+            struct vm_allocation *vm_alloc = vmm_alloc_install_vm(vm_id, master);
+            struct vm_config *vm_config = &config.vm[vm_id];
+            struct vm *vm = vm_init(vm_alloc, vm_config, master, vm_id);
+            cpu_sync_barrier(&vm->sync);
+            task_struct_init(vm);
+            //vcpu_run(cpu()->vcpu);
+        } else {
+            ERROR(" vmm_assign_vcpu failed! ");
+        }
     }
 
-    if (vmm_assign_vcpu(&master, &vm_id)) {
-        INFO("VMID:%d Load addr: 0x%x", vm_id, config.vm[vm_id].load_addr);
-        struct vm_allocation *vm_alloc = vmm_alloc_install_vm(vm_id, master);
-        struct vm_config *vm_config = &config.vm[vm_id];
-        struct vm *vm = vm_init(vm_alloc, vm_config, master, vm_id);
-        cpu_sync_barrier(&vm->sync);
-        task_struct_init(vm);
-    } else {
-        cpu_idle();
-    }
     INFO("id:is%lx\n" , cpu() ->vcpu ->vm->id );
-    vcpu_run(cpu()->vcpu);
+    first_run_task();
+    //vcpu_run(cpu()->vcpu);
 }

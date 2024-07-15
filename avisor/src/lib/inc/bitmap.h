@@ -21,7 +21,7 @@ static const bitmap_granule_t ONE = 1;
 
 
 static inline void bitmap_set(bitmap_t* map, size_t bit) {
-    map[bit / BITMAP_GRANULE_LEN] |= ONE << (bit % BITMAP_GRANULE_LEN);
+    map[bit / BITMAP_GRANULE_LEN] |= ONE << (bit % BITMAP_GRANULE_LEN); //not safe
 }
 
 static inline void bitmap_clear(bitmap_t* map, size_t bit) {

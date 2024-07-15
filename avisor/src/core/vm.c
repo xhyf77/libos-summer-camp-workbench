@@ -71,6 +71,7 @@ void vm_cpu_init(struct vm* vm) {
     spin_unlock(&vm->lock);
 }
 
+
 static vcpuid_t vm_calc_vcpu_id(struct vm* vm) {
     vcpuid_t vcpu_id = 0;
     for(size_t i = 0; i < cpu()->id; i++) {
@@ -78,13 +79,15 @@ static vcpuid_t vm_calc_vcpu_id(struct vm* vm) {
     }
     return vcpu_id;
 }
-
+static int vcpu_id_counter = 0;
 void vm_vcpu_init(struct vm* vm, const struct vm_config* vm_config) {
     vcpuid_t vcpu_id = vm_calc_vcpu_id(vm);
     struct vcpu* vcpu = vm_get_vcpu(vm, vcpu_id);
     vcpu->id = vcpu_id;
     vcpu->p_id = cpu()->id;
     vcpu->vm = vm;
+    vcpu->real_id = vcpu_id_counter++;
+    INFO("VM_ID:%d----vcpu_real_id:%d\n" , vm->id , vcpu->real_id );
     cpu()->vcpu = vcpu;
 
     vcpu_arch_init(vcpu, vm);   //set vttbr_el2 (two-stage)

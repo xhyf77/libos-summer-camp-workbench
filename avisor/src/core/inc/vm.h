@@ -38,6 +38,7 @@ struct vcpu {
     struct vcpu_arch arch;
 
     struct vm* vm;
+    unsigned long real_id;
 };
 
 struct vm_platform {
