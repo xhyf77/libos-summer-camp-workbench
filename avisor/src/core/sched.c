@@ -6,7 +6,7 @@
 #include "cpu.h"
 #include "vm.h"
 #include "sysregs.h"
-
+#define SCHEDULE
 struct __task_struct {
     int status;
     int level;
@@ -102,10 +102,7 @@ void task_struct_init(struct vm* vm) {
 
 void try_reschedule() {
 #ifdef SCHEDULE
-    if (__current()->need_resched || current()->need_resched) {
-        INFO("SCHEDULE");
-        schedule();
-    }
+    schedule();
 #endif
 }
 
@@ -142,6 +139,7 @@ void schedule() {
 
     __prev = __current();
     prev = current();
+    prev->vm->vcpus = cpu()->vcpu;
 
 //TODO: two locks instead of one big lock
     spin_lock(&rq_lock);
@@ -156,14 +154,12 @@ select_vm:
         if (temp->status == TASK_READY && temp->nr_vcpu_ready > 0) {
             weight = goodness(temp);
             if (weight > max_weight && temp->vm->id != prev->vm->id ) {
-//                INFO("prev_id:%d ,,,,,, next_id:%d\n" ,  prev->vm->id , temp->vm->id );
-//                INFO("prev_pc:0x%lx ,,,,,, next_pc:0x%lx\n" ,  prev->vm->vcpus->regs.elr_el2 , temp->vm->vcpus->regs.elr_el2 );
                 max_weight = weight;
                 next = temp;
             }
         }
     }
-    
+    INFO("prev::%lx , next:%lx" , prev->vm->id , next->vm->id );
     if (next == NULL) {
         if (!repeat) {
             list_for_each_entry(temp, &runqueue, list) {
@@ -204,4 +200,5 @@ select_vm:
     prepare_to_switch(next);
 
     cpu()->vcpu = next->vm->vcpus;
+
 }

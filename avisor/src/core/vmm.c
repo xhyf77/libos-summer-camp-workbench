@@ -98,6 +98,7 @@ void vm_list_init() {
 }
 
 void vmm_init() {
+    
     vmm_arch_init();
     
     vmm_io_init();
@@ -131,6 +132,6 @@ void vmm_init() {
     } else {
         cpu_idle();
     }
-
+    INFO("id:is%lx\n" , cpu() ->vcpu ->vm->id );
     vcpu_run(cpu()->vcpu);
 }

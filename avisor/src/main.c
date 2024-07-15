@@ -32,7 +32,6 @@ int main(cpuid_t id) {
      cpu_sync_barrier(&cpu_glb_sync);
 
      interrupts_init();
-
      vmm_init();
 
      while(1);

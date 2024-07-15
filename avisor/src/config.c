@@ -2,8 +2,8 @@
 
 // TODO
 //VM_IMAGE(vm1, "./image/app-helloworld_kvm-arm64");
-VM_IMAGE(vm1, "../unikraft-work/apps/app-helloworld/build/app-helloworld_kvm-arm64.bin");
 VM_IMAGE(vm2, "../unikraft-work/apps/app-helloworld2/build/app-helloworld_kvm-arm64.bin");
+VM_IMAGE(vm1, "../unikraft-work/apps/app-helloworld/build/app-helloworld_kvm-arm64.bin");
 // DTB_IMAGE(dtb1, "./image/virt-gicv3.dtb");
 DTB_IMAGE(dtb1, "./image/virt.dtb");
 
@@ -15,9 +15,9 @@ struct config config = {
     .vm = (struct vm_config[]) {
         {
             .base_addr = 0x40100000, 
-            .load_addr = VM_IMAGE_OFFSET(vm1),
-            .size = VM_IMAGE_SIZE(vm1),
-            .entry = 0x0000000040101570,
+            .load_addr = VM_IMAGE_OFFSET(vm2),
+            .size = VM_IMAGE_SIZE(vm2),
+            .entry = 0x40102098,
             .dmem_size = 0x8000000,
             .nr_cpus = 1,
             .nr_devs = 2,
@@ -48,9 +48,9 @@ struct config config = {
         },
         {
             .base_addr = 0x40100000, 
-            .load_addr = VM_IMAGE_OFFSET(vm2),
-            .size = VM_IMAGE_SIZE(vm2),
-            .entry = 0x0000000040101570,
+            .load_addr = VM_IMAGE_OFFSET(vm1),
+            .size = VM_IMAGE_SIZE(vm1),
+            .entry = 0x40102098,
             .dmem_size = 0x8000000,
             .nr_cpus = 1,
             .nr_devs = 2,

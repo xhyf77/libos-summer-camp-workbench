@@ -25,7 +25,10 @@
 	str x0, 	  [sp, #248]
 
 	mrs x0, elr_el2
-    stp x0, x1,   [sp, #256]
+	str x0, 	  [sp, #256]
+
+	mrs x0, sp_el1
+	str x0, 	  [sp, #264]
 	
 	mrs x0, tpidr_el2
     ldr x1, =(CPU_STACK_OFF + CPU_STACK_SIZE)
@@ -135,6 +138,9 @@ vm_entry:
 
 	ldr	x0, [sp , #256]
     msr	elr_el2, x0		
+
+	ldr	x0, [sp , #264]
+    msr	sp_el1, x0		
 
 	ldp	x0, x1,   [sp, #0]
 	ldp	x2, x3,   [sp, #16]

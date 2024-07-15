@@ -10,6 +10,7 @@ typedef enum {
     HYPERCALL_ISS_PRINT,
     HYPERCALL_ISS_RESTART,
     HYPERCALL_ISS_RESTORE_FROM_ID,
+    HYPERCALL_ISS_SCHED_YIELD,
 } HYPERCALL_TYPE;
 
 typedef void (*hypercall_handler_t)(unsigned long, unsigned long, unsigned long, unsigned long);

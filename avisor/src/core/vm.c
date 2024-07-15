@@ -41,7 +41,9 @@ static void vm_init_mem_regions(struct vm* vm, const struct vm_config* vm_config
         }
         mem_translate(&vm->as, va, &pa);
         share_memory = pa;
-        *(char *)share_memory = "test\n";
+        for(int i = 0 ; i < 4096 * 10 ; i ++ ){
+            *(unsigned char *)(share_memory + i ) = 0;
+        }
     }
     else{
         struct ppages x;

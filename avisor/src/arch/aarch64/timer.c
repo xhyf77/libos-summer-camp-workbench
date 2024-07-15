@@ -39,7 +39,7 @@ void timer_handler(void) {
 	uint64_t ticks, current_cnt;
 	// uint32_t val;
 
-	// Disable the timer
+	// Disable the timer	
 	disable_cnthp();
 	// val = sysreg_cnthp_ctl_el2_read();
 
@@ -52,10 +52,8 @@ void timer_handler(void) {
 	INFO("TIME IRQ %d", ++cnt);
 	// Enable the timer
 	enable_cnthp();
-	if( cnt < 2 ) return ;
-	schedule();
-	INFO( "next pc:0x%lx" , cpu()->vcpu->regs.elr_el2 );
-	vcpu_run(cpu()->vcpu);
+
+	//schedule();
 }
 
 

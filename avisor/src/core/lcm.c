@@ -101,9 +101,16 @@ void restart_vm() {
     vaddr_t va = config->base_addr;
     paddr_t pa;
     mem_translate(&CURRENT_VM->as, va, &pa);
-    memcpy((void*)pa, config->load_addr , config->dmem_size);
+    INFO("base_address:0x%lx\n " , config->base_addr );
+    INFO("load_address:0x%lx\n " , config->load_addr );
+    memcpy((void*)pa, config->load_addr , config->size);
+    for(int i = 0 ; i < config->dmem_size ; i ++ ){
+        *(uint64_t *)(pa + config->size + i ) = 0;
+    }
     vcpu_arch_reset(CURRENT_VM->vcpus, config->entry); //set vcpu->regs.spsr_el2 and entry and something
+    INFO("entry:0x%lx\n" , config->entry );
 }
+
 
 void restore_snapshot_hanlder(unsigned long iss, unsigned long arg0, unsigned long arg1, unsigned long arg2) { 
     // Implement me: 恢复快照的handler
@@ -180,4 +187,8 @@ void restore_snapshot_hanlder_by_ss( ssid_t id ) {
 
 void print_handler(unsigned long iss, const char *message ){
     PRINT(message);
+}
+
+void sched_yield(){
+    try_reschedule();
 }
