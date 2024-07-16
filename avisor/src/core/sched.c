@@ -125,7 +125,7 @@ void first_run_task(){
 void update_task_times() {
     struct task_struct *p = current();
     struct __task_struct *__p = __current();
-
+    
     INFO("update task times");
     INFO("vpcu[%d]: %d", __p->vcpu->real_id, __p->counter);
     INFO("vm[%d]: %d", p->vm->id, p->counter);
@@ -155,7 +155,8 @@ void schedule() {
 
     __prev = __current();
     prev = current();
-
+    INFO("pc1:0x:%lx--------pc2:0x:%lx" , prev->vm->vcpus->regs.elr_el2 , cpu()->vcpu->regs.elr_el2);
+    prev->vm->vcpus = cpu()->vcpu;
 //TODO: two locks instead of one big lock
     spin_lock(&rq_lock);
 
@@ -164,6 +165,7 @@ void schedule() {
     prev->nr_vcpu_ready++;
     /* select vm */
 select_vm:
+
 
 /*
     list_for_each_entry(temp, &runqueue, list) {
@@ -175,7 +177,9 @@ select_vm:
             }
         }
     }
-    */
+*/
+    
+//  轮转调度
     INFO("max_vm_id:%d" , max_vm_id );
     if( prev->vm->id == max_vm_id){
         list_for_each_entry(temp, &runqueue, list) {
@@ -194,6 +198,7 @@ select_vm:
             goto select_vcpu;
         }
     }
+
     
     if (next == NULL) {
         if (!repeat) {
@@ -239,6 +244,6 @@ select_vcpu:
     spin_unlock(&rq_lock);
 
     prepare_to_switch(next);
-    cpu()->vcpu = __next->vcpu;
+
     switch_to(__next);
 }

@@ -52,6 +52,7 @@ SECTIONS
 	__mem_vm_begin = ABSOLUTE(.);
 	. = . + VM_SIZE;
 	__mem_vm_end = ABSOLUTE(.);
-
+	__bitmap_start = ABSOLUTE(.);
+	. = . + PAGE_SIZE*5;
 	. = ALIGN(PAGE_SIZE);
 }

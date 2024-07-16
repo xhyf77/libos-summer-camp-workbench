@@ -35,7 +35,7 @@ void restore_snapshot_hanlder(unsigned long iss, unsigned long arg0, unsigned lo
 void guest_halt_hanlder(unsigned long iss, unsigned long far, unsigned long il, unsigned long ec);
 void print_handler(unsigned long iss, const char *message );
 void restart_vm();
-void restore_snapshot_hanlder_by_ss( ssid_t id );
+void restore_snapshot_hanlder_by_ss(unsigned long iss, unsigned long arg0, unsigned long arg1, unsigned long arg2);
 void sched_yield();
 extern struct list_head ss_pool_list;
 

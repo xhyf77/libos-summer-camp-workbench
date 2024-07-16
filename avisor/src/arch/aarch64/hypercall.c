@@ -15,37 +15,12 @@ hypercall_handler_t hypercall_handlers[8] = {
 
 void hypercall_handler(unsigned long iss, unsigned long arg0, unsigned long arg1, unsigned long arg2) {
     INFO("hypercall: %lu, arg0: %lu, arg1: %lu, arg2: %lu", iss, arg0, arg1, arg2);
-    switch (iss) {
-        case HYPERCALL_ISS_HALT:
-            INFO("Hypercall: HALT");
-            guest_halt_hanlder( iss , arg0 , arg1 , arg2 );
-            break;
-        case HYPERCALL_ISS_CHECKPOINT_SNAPSHOT:
-            INFO("Hypercall: CHECKPOINT_SNAPSHOT");
-            checkpoint_snapshot_hanlder( iss , arg0 , arg1 , arg2 );
-            break;
-        case HYPERCALL_ISS_RESTORE_SNAPSHOT:
-            INFO("Hypercall: RESTORE_SNAPSHOT");
-            restore_snapshot_hanlder( iss , arg0 , arg1 , arg2 );
-            break;
-        case HYPERCALL_ISS_RESTART:
-            INFO("Hypercall: RESTART");
-            restart_vm();
-            break;
-        case HYPERCALL_ISS_PRINT:
-            INFO("Hypercall: MY_PRINT");
-            print_handler( iss , arg0 );
-            break;
-        case HYPERCALL_ISS_RESTORE_FROM_ID:
-            INFO("Hypercall: RESTORE_TO:%d" , arg0 );
-            restore_snapshot_hanlder_by_ss( arg0 );
-            break;
-        case HYPERCALL_ISS_SCHED_YIELD:
-            INFO("Hypercall: SCHED_YIELD");
-            sched_yield();
-            break;
-        default:
-            INFO("Unknown hypercall: %lu, arg0: %lu, arg1: %lu, arg2: %lu", iss, arg0, arg1, arg2);
-            break;
+    unsigned long hypercall_number = iss;
+    if (hypercall_number < sizeof(hypercall_handlers) / sizeof(hypercall_handlers[0])) {
+        hypercall_handler_t handler = hypercall_handlers[hypercall_number];
+        handler( iss , arg0, arg1, arg2 );
+    } else {
+        // 处理无效的 hypercall 编号
+        INFO("Invalid hypercall number: %lu", hypercall_number);
     }
 }
