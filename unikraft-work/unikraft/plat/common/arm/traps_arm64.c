@@ -198,7 +198,6 @@ void trap_el1_sync(struct __regs *regs, __u64 far)
 		else if (rc)
 			return;
 	}
-
 	uk_pr_crit("EL1 sync trap caught\n");
 	dump_registers(regs, far);
 	ukplat_crash();

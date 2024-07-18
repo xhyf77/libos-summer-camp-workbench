@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "wordsize.h": "c",
+        "stdatomic.h": "c"
+    }
+}

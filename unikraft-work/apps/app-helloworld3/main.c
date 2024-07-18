@@ -24,7 +24,7 @@ static void millisleep(unsigned int millisec)
 #endif /* CONFIG_APPHELLOWORLD_SPINNER */
 
 
-void print_message(const char *message) {
+void perform_hypercall(const char *message) {
     unsigned long msg_addr = (unsigned long)message;
 
     asm volatile (
@@ -36,41 +36,26 @@ void print_message(const char *message) {
     );
 }
 
-long long restore_from_id( unsigned long long id) {
-    long long result;
+void restore_from_id( unsigned long long id) {
     asm volatile (
-        "mov x0, %1\n"  // 将 id 加载到 x0
+        "mov x0, %0\n"  // 将 hypercall_id 加载到 x0
         "hvc #5\n"      // 发起 Hypercall
-        "mov %0, x0\n"  // 将 x0 寄存器的值移动到 result 变量
-        : "=r" (result) // 输出操作数，告诉编译器将 x0 的值存储在 result 中
-        : "r" (id)      // 输入操作数，将 id 的值加载到 x0
-        : "x0"          // clobber list，表明 x0 寄存器被修改
+        :
+        :  "r" (id)
+        : "x0"
     );
-    return result;
 }
 
-long long checkpoint() {
-    long long result;
+void checkpoint() {
     asm volatile (
         "hvc #1\n"      // 发起 Hypercall
-        "mov %0, x0\n"  // 将 x0 寄存器的值移动到 result 变量
-        : "=r" (result) // 输出操作数，告诉编译器将 x0 的值存储在 result 中
-        :               // 无输入操作数
-        : "x0"          // clobber list，表明 x0 寄存器被修改
     );
-    return result;
 }
 
-long long restore() {
-    long long result;
+void restore() {
     asm volatile (
         "hvc #2\n"      // 发起 Hypercall
-        "mov %0, x0\n"  // 将 x0 寄存器的值移动到 result 变量
-        : "=r" (result) // 输出操作数，告诉编译器将 x0 的值存储在 result 中
-        :               // 无输入操作数
-        : "x0"          // clobber list，表明 x0 寄存器被修改
     );
-    return result;
 }
 
 void restart() {
@@ -150,7 +135,7 @@ typedef struct {
 
 volatile shared_mem_t *shared_memory = (volatile shared_mem_t *)SHARED_MEM_VIRT_ADDR;
 
-
+// 初始化共享内存和锁
 void init_shared_memory() {
     for (int i = 0; i < MAX_VMS; i++) {
         shared_memory->vms[i].flag = FLAG_EMPTY;
@@ -201,28 +186,10 @@ int main(int argc, char *argv[])
 #if CONFIG_APPHELLOWORLD_PRINTARGS || CONFIG_APPHELLOWORLD_SPINNER
 	int i;
 #endif
-	int x = 0;
-	printf("Hello,this is hello_world 1 !\n");
-	printf("Hello world!\n");
-	if( checkpoint() == -1 ){
-        printf("This snapshot has not create\n");
-        return 0;
-    }//ssid = 0
-	printf("x is :%d\n",x); // x = 0
-	x = x + 1;
-	if( checkpoint() == -1 ){
-        printf("This snapshot has not create\n");
-        return 0;
-    }//ssid = 1
-	printf("x is :%d\n",x); //x = 1
-	x = x + 1;
-	if( checkpoint() == -1 ){
-        printf("This snapshot has not create\n");
-        return 0;
-    }//ssid = 2
-	printf("x is :%d\n",x); // x = 2
-    restart();
-
+	printf("Hello,this is hello_world 3 !\n");
+	for(int i = 1 ; i <= 10000000 ; i ++ ) {
+        printf("VM_3: %d/%d\n", i , 100000000);
+    }
 	
 #if CONFIG_APPHELLOWORLD_SPINNER
 	i = 0;
